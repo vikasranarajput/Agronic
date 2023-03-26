@@ -1,172 +1,164 @@
-import 'package:agriculture/main.dart';
-import 'package:agriculture/sign_up.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:agriculture/reusable_widget';
+import 'Home.dart';
 
-class Login extends StatefulWidget {
-  const Login({super.key});
+class Sign_In extends StatefulWidget {
+  const Sign_In({super.key});
 
   @override
-  State<Login> createState() => _LoginState();
+  State<Sign_In> createState() => _Sign_InState();
 }
 
-class _LoginState extends State<Login> {
+class _Sign_InState extends State<Sign_In> {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-  final TextEditingController emailController = new TextEditingController();
-  final TextEditingController passwordController = new TextEditingController();
+  void checkCurrentUser() async {
+    final currentUser = await FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      Navigator.pushReplacement(
+          (context), MaterialPageRoute(builder: (context) => const Home()));
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkCurrentUser();
+  }
+
   @override
   Widget build(BuildContext context) {
     final emailField = TextFormField(
       autofocus: false,
-      controller: emailController,
+      controller: _emailController,
       keyboardType: TextInputType.emailAddress,
-      // validator: (){},
       onSaved: (value) {
-        emailController.text = value!;
+        _emailController.text = value!;
       },
       textInputAction: TextInputAction.next,
     );
     final passwordField = TextFormField(
       autofocus: false,
-      controller: passwordController,
-      // validator: (){},
+      controller: _passwordController,
       onSaved: (value) {
-        passwordController.text = value!;
+        _passwordController.text = value!;
       },
       textInputAction: TextInputAction.done,
     );
-
-    return Container(
-        decoration: BoxDecoration(
-            image: DecorationImage(
-          image: AssetImage(
-            'assets/Sign_In.jpg',
+    return Scaffold(
+        body: SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Padding(
+          padding: EdgeInsets.only(
+              top: MediaQuery.of(context).size.height * 0.1,
+              right: 20,
+              left: 20,
+              bottom: 20),
+          child: Column(
+            children: [
+              logo('assets/Icon.png'),
+              textField('Email', Icons.person, false, _emailController),
+              SizedBox(height: 10),
+              textField('Password', Icons.lock, true, _passwordController),
+              SizedBox(
+                height: 10,
+              ),
+              elevatedButton(context, true, ()
+                  // async
+                  {
+                FirebaseAuth.instance
+                    .signInWithEmailAndPassword(
+                        email: _emailController.text,
+                        password: _passwordController.text)
+                    .then((value) {
+                  Navigator.push((context),
+                      MaterialPageRoute(builder: (context) => Home()));
+                }).onError((error, stackTrace) {
+                  print("Error ${error.toString()}");
+                });
+              }),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Do not have an account?'),
+                  textButton(true, () {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Sign_Up()));
+                  }),
+                ],
+              ),
+            ],
           ),
-        )),
-        child: Center(
-            child: Scaffold(
-                backgroundColor: Colors.transparent,
-                body: SingleChildScrollView(
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        Stack(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.only(
-                                top: MediaQuery.of(context).size.height * 0.5,
-                                left: 35,
-                                right: 35,
-                              ),
-                              child: Column(
-                                children: [
-                                  TextField(
-                                    obscureText: false,
-                                    decoration: InputDecoration(
-                                        hintText: 'Email',
-                                        prefixIcon: Icon(Icons.person),
-                                        fillColor: Colors.white,
-                                        filled: true,
-                                        border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10))),
-                                  ),
-                                  SizedBox(
-                                    height: 20,
-                                  ),
-                                  TextField(
-                                    obscureText: true,
-                                    decoration: InputDecoration(
-                                        hintText: 'Password',
-                                        prefixIcon: Icon(Icons.lock),
-                                        fillColor: Colors.white,
-                                        filled: true,
-                                        border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10))),
-                                  ),
-                                  SizedBox(
-                                    height: 30,
-                                  ),
-                                  Container(
-                                    child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.black,
-                                            padding: EdgeInsets.all(15),
-                                            shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(5))),
-                                        onPressed: () {
-                                          Navigator.push(
-                                              (context),
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      Index()));
-                                        },
-                                        child: Center(
-                                          child: Text(
-                                            'Login',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 20,
-                                            ),
-                                          ),
-                                        )),
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text('Do not have an Account?'),
-                                      TextButton(
-                                          onPressed: () {
-                                            Navigator.push(
-                                                (context),
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        Sign_up()));
-                                          },
-                                          child: Text(
-                                            'Sign Up',
-                                            style: TextStyle(
-                                                fontSize: 20,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.bold),
-                                          )),
-                                      // TextButton(
-                                      //     onPressed: () {},
-                                      //     child: Text(
-                                      //       'Forgotton\nPassword',
-                                      //       style: TextStyle(
-                                      //           fontSize: 20,
-                                      //           color: Colors.black),
-                                      //     ))
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 20,
-                                  ),
-                                  TextButton(
-                                      onPressed: () {},
-                                      child: Text(
-                                        'Forgotton Password',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ))
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ))));
+        ),
+      ),
+    ));
+  }
+}
+
+class Sign_Up extends StatefulWidget {
+  const Sign_Up({super.key});
+
+  @override
+  State<Sign_Up> createState() => _Sign_UpState();
+}
+
+class _Sign_UpState extends State<Sign_Up> {
+  TextEditingController _emailController = new TextEditingController();
+  TextEditingController _passwordController = new TextEditingController();
+  TextEditingController _nameController = new TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.only(
+              top: MediaQuery.of(context).size.height * 0.1,
+              right: 20,
+              left: 20,
+              bottom: 20),
+          child: Column(
+            children: [
+              logo('assets/Icon.png'),
+              textField(
+                  'Name', Icons.person_2_outlined, false, _nameController),
+              textField('Email', Icons.person, false, _emailController),
+              SizedBox(height: 10),
+              textField('Password', Icons.lock, true, _passwordController),
+              SizedBox(
+                height: 10,
+              ),
+              elevatedButton(context, false, () {
+                FirebaseAuth.instance
+                    .createUserWithEmailAndPassword(
+                        email: _emailController.text,
+                        password: _passwordController.text)
+                    .then((value) {
+                  print("Created New Account");
+                  Navigator.pop((context),
+                      MaterialPageRoute(builder: (context) => Home()));
+                }).onError((error, stackTrace) {
+                  print("Error ${error.toString()}");
+                });
+              }),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Do have an account?'),
+                  textButton(false, () {
+                    Navigator.pop(context,
+                        MaterialPageRoute(builder: (context) => Sign_In()));
+                  }),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
